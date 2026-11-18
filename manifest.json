@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Covidence Swipe Screener",
+  "version": "0.2.0",
+  "description": "Swipe or use arrow keys to screen Covidence studies, highlight PCC keywords, and split abstracts into Intro / Methods / Results / Discussion.",
+  "permissions": ["storage"],
+  "action": {"default_popup": "popup.html", "default_title": "Covidence Swipe settings"},
+  "content_scripts": [
+    {
+      "matches": ["https://app.covidence.org/*"],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ]
+}
