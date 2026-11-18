@@ -4,18 +4,28 @@
 
 ▶️ [Watch the 2-minute tutorial](docs/tutorial.mp4) · 🎬 [Watch the 1-minute demonstration](docs/demo.mp4)
 
-A Chrome extension for title and abstract screening in [Covidence](https://www.covidence.org/).
-Swipe right to include, swipe left to exclude, and see your protocol keywords highlighted as you read.
+Dating apps? ❌  
+Research databases? ✅
 
-> **This tool only helps you read.**
-> It does not screen for you.
-> Every Yes, No and Maybe is your own decision, cast through Covidence's own buttons.
+POV: you're a PhD student, and the only thing you swipe left and right on is research papers. 😂
+
+- 👈 **Swipe left** if it doesn't meet your inclusion criteria.
+- 👉 **Swipe right** if it's relevant to your research question.
+- 🤔 **Tap** if you're not sure yet. That's a Maybe, not a situationship.
+
+It's not ghosting. It's screening. 👀
+
+Who needs Tinder when you've got hundreds of abstracts to screen for your scoping review?
+So I made a little Chrome extension for [Covidence](https://www.covidence.org/) that makes title and abstract screening feel a bit less like an endless academic situationship. 🚀
+
+> **It only helps you read. It never decides for you.**  
+> Every Yes, No and Maybe is your own call, saved through Covidence's own buttons.  
 > The "recommended decision" is a simple keyword count, not an AI model, and it can be wrong.
 
-## Why
+## What it does
 
-Title and abstract screening means reading hundreds of abstracts against the same criteria.
-This extension makes each abstract easier to scan.
+Hundreds of abstracts, the same criteria every time.
+This makes each one quicker to scan.
 
 - **One paper at a time** on a clean card, with the criteria one click away.
 - **Your protocol words highlighted** in a colour per framework field (for example Population, Concept and Context).
@@ -103,3 +113,9 @@ It cannot understand meaning, so treat it as a hint, never as the decision.
 ## Licence
 
 MIT
+
+---
+
+Tag a PhD student who needs this in their life. 😂
+
+`#PhDLife` `#ScopingReview` `#SystematicReview` `#ResearchTools`
