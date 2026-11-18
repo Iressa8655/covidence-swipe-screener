@@ -450,6 +450,13 @@
     const wrap = overlay.querySelector('#cvs-progress');
     wrap.title = 'Click to turn on / off';
     wrap.classList.toggle('cvs-off', protocol.progress === false);
+    // Covidence shows 25 per page and refills it, so prefer its own total,
+    // the "Screen references 45" tab, over the page count.
+    const tab = [...document.querySelectorAll('a, button, li, span, div')]
+      .filter(el => !overlay.contains(el) && el.children.length < 4)
+      .map(el => (el.innerText || '').match(/screen references\s*\(?\s*(\d+)/i))
+      .find(Boolean);
+    if (tab) left = Number(tab[1]);
     const done = voteHistory.length, total = done + left;
     overlay.querySelector('#cvs-done-n').textContent = done + ' done';
     overlay.querySelector('#cvs-left-n').textContent = left;
