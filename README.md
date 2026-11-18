@@ -1,6 +1,8 @@
 # Screening papers is fun, just like Tinder (or Anki, if you like)
 
-▶️ [Watch the 2-minute tutorial](docs/tutorial.mp4)
+![Screening card with protocol keywords highlighted](docs/preview.png)
+
+▶️ [Watch the 2-minute tutorial](docs/tutorial.mp4) · 🎬 [Watch the 1-minute demonstration](docs/demo.mp4)
 
 A Chrome extension for title and abstract screening in [Covidence](https://www.covidence.org/).
 Swipe right to include, swipe left to exclude, and see your protocol keywords highlighted as you read.
