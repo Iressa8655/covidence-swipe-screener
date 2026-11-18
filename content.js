@@ -140,21 +140,44 @@
   function loadNotes(cb) {
     chrome.storage.local.get(notesKey(), s => { notes = s[notesKey()] || {}; cb(); });
   }
-  function saveNote(title, text, vote) {
-    const id = noteId(title);
-    if (!text.trim() && !notes[id]) return;
-    notes[id] = {title, note: text.trim(), vote: vote || notes[id]?.vote || '', date: new Date().toISOString().slice(0, 10)};
+  let unexported = 0;  // notes written since the last export
+  // Covidence ID (#21) is what you search for in Covidence; DOI finds the paper anywhere.
+  function paperInfo(box, title) {
+    const text = box.innerText;
+    return {
+      title,
+      covidenceId: (text.match(/#s?(d+)/) || [])[1] || '',
+      doi: ((text.match(/10.d{4,9}/[^s"<>]+/) || [])[0] || '').replace(/[.,;)]+$/, ''),
+      firstAuthorYear: (text.match(/#s?d+s*-s*([^
+·]+?d{4})/) || [])[1] || ''
+    };
+  }
+  function saveNote(info, text, vote) {
+    if (!info?.title) return;
+    const id = noteId(info.title);
+    const clean = text.trim();
+    if (!clean && !notes[id]) return;
+    if (clean !== (notes[id]?.note || '')) unexported++;
+    notes[id] = {...info, note: clean, vote: vote || notes[id]?.vote || '',
+      date: new Date().toISOString().slice(0, 10)};
     chrome.storage.local.set({[notesKey()]: notes});
   }
   function exportNotes() {
-    const rows = [['Title', 'Vote', 'Note', 'Date']].concat(
-      Object.values(notes).map(n => [n.title, n.vote, n.note, n.date]));
+    const rows = [['Covidence ID', 'First author and year', 'Title', 'DOI', 'Vote', 'Note', 'Date']].concat(
+      Object.values(notes).map(n => [n.covidenceId ? '#' + n.covidenceId : '', n.firstAuthorYear || '',
+        n.title, n.doi ? 'https://doi.org/' + n.doi : '', n.vote, n.note, n.date]));
     const csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join(String.fromCharCode(13, 10));
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([String.fromCharCode(0xfeff) + csv], {type: 'text/csv'}));
     a.download = `covidence-notes-review-${reviewId()}.csv`;
     a.click();
+    unexported = 0;
   }
+
+  // Leaving Covidence with notes not yet exported: the browser asks first.
+  window.addEventListener('beforeunload', e => {
+    if (unexported > 0) { exportNotes(); e.preventDefault(); e.returnValue = ''; }
+  });
 
   function loadProtocol(cb) {
     chrome.storage.local.get(storageKey(), s => {
@@ -306,13 +329,11 @@
       <div class="cvs-small">${esc(r.why)}</div>
       <div class="cvs-small">click or R to hide</div>
       <div class="cvs-how">
-        <b>How this is decided</b><br>
-        A simple keyword rule, no AI model. It counts your protocol words in the title and abstract.<br>
-        • <b>No</b>: an exclude word in the title, or 2+ exclude words and not every field matched<br>
-        • <b>Yes</b>: every field matched and at least 1 search keyword<br>
-        • <b>Maybe</b>: at least 1 field or 2 search keywords<br>
-        • otherwise <b>No</b><br><br>
-        <b>Words found here</b><br>${r.detail.map(esc).join('<br>')}
+        Keyword count, not AI.<br>
+        ✅ Yes = all parts found<br>
+        🤔 Maybe = some found<br>
+        ❌ No = exclude word, or nothing found<br><br>
+        ${r.detail.map(esc).join('<br>')}
       </div>`;
   }
 
@@ -475,7 +496,7 @@
     const noteBox = overlay.querySelector('#cvs-notebox');
     noteBox.value = prev?.note || '';
     noteBox.placeholder = prev?.vote ? `Last time: ${prev.vote.toUpperCase()} (${prev.date})` : 'Note: why? (N to type, Enter to finish)';
-    noteBox.dataset.title = title;
+    noteBox.dataset.info = JSON.stringify(paperInfo(current.box, title));
     card.scrollTop = 0;
   }
 
@@ -485,7 +506,7 @@
     busy = true;
     voteHistory.push({vote: v, title: parseStudy(current.box).title, box: current.box});
     const nb = overlay.querySelector('#cvs-notebox');
-    saveNote(nb.dataset.title || '', nb.value, v);
+    saveNote(JSON.parse(nb.dataset.info || '{}'), nb.value, v);
     nb.blur();
     card.style.transform = {
       no: 'translateX(-120%) rotate(-12deg)',
@@ -584,11 +605,15 @@
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); nb.blur(); }
       if (e.key === 'Escape') nb.blur();
     });
-    nb.addEventListener('blur', () => saveNote(nb.dataset.title || '', nb.value));
+    nb.addEventListener('blur', () => saveNote(JSON.parse(nb.dataset.info || '{}'), nb.value));
     loadNotes(() => loadProtocol(render));
   }
 
   function close() {
+    if (unexported > 0) {
+      exportNotes();
+      alert('Your notes were saved to Downloads as a CSV.');
+    }
     overlay?.remove();
     overlay = null;
   }
