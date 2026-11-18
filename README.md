@@ -1,5 +1,7 @@
 # Screening papers is fun, just like Tinder (or Anki, if you like)
 
+▶️ [Watch the 2-minute tutorial](docs/tutorial.mp4)
+
 A Chrome extension for title and abstract screening in [Covidence](https://www.covidence.org/).
 Swipe right to include, swipe left to exclude, and see your protocol keywords highlighted as you read.
 
@@ -40,11 +42,13 @@ The extension is not on the Chrome Web Store yet, so you load it in developer mo
 | **No** | ← | two-finger swipe left | swipe left |
 | **Yes** | → | two-finger swipe right | swipe right |
 | **Maybe** | ← and → together, or ↑ / ↓ | two-finger tap | swipe up or down |
+| Write a note on this paper | N, then Enter | | |
 | Undo last vote | Ctrl + Z | | |
 | Edit protocol | P, or the **Protocol** tab on the right | | |
 | Recommendation on / off | R, or click the box | | |
 | Close | Esc, or ✕ top right | | |
 
+- **Notes.** Press N and write why you chose Maybe (or anything else). The note is saved with your vote, shown again if the paper comes back, and can be exported as a CSV from the Protocol page. Notes stay in your browser and are not sent to Covidence.
 - Dragging with the mouse selects text and never casts a vote.
 - The bar on the left shows how many papers you have screened and how many are left on this page. Click it to hide it.
 - Ctrl + Z uses Covidence's own Undo button when one is shown. If Covidence offers none, it tells you which paper to change by hand.

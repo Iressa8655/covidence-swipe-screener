@@ -133,6 +133,29 @@
   const storageKey = () => `review_${reviewId()}`;
   let protocol = null;
 
+  // Notes: one per paper, kept in this browser, keyed by review + title.
+  const notesKey = () => `notes_${reviewId()}`;
+  let notes = {};
+  const noteId = title => title.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().slice(0, 160);
+  function loadNotes(cb) {
+    chrome.storage.local.get(notesKey(), s => { notes = s[notesKey()] || {}; cb(); });
+  }
+  function saveNote(title, text, vote) {
+    const id = noteId(title);
+    if (!text.trim() && !notes[id]) return;
+    notes[id] = {title, note: text.trim(), vote: vote || notes[id]?.vote || '', date: new Date().toISOString().slice(0, 10)};
+    chrome.storage.local.set({[notesKey()]: notes});
+  }
+  function exportNotes() {
+    const rows = [['Title', 'Vote', 'Note', 'Date']].concat(
+      Object.values(notes).map(n => [n.title, n.vote, n.note, n.date]));
+    const csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join(String.fromCharCode(13, 10));
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([String.fromCharCode(0xfeff) + csv], {type: 'text/csv'}));
+    a.download = `covidence-notes-review-${reviewId()}.csv`;
+    a.click();
+  }
+
   function loadProtocol(cb) {
     chrome.storage.local.get(storageKey(), s => {
       protocol = s[storageKey()] || null;
@@ -309,7 +332,9 @@
       <input type="file" id="cvs-file" accept=".docx">
       <textarea id="cvs-raw" rows="8">${esc(p.raw || '')}</textarea>
       <p><button id="cvs-extract" style="background:#5b7bd5">Extract keywords →</button></p>
-      <div id="cvs-review"></div>`;
+      <div id="cvs-review"></div>
+      <p><button id="cvs-export" style="background:#888">Export my notes (CSV)</button></p>`;
+    card.querySelector('#cvs-export').onclick = exportNotes;
     const review = card.querySelector('#cvs-review');
 
     function showReview(terms, keywords, excludeTerms) {
@@ -388,7 +413,7 @@
   function legend() {
     overlay.querySelector('#cvs-legend').innerHTML = highlightGroups()
       .map(g => `<span style="background:${g.colour}">${esc(g.label)}</span>`).join('')
-      + ' <small>P protocol · Ctrl+Z undo</small>';
+      + ' <small>N note · P protocol · Ctrl+Z undo</small>';
   }
 
   function toast(msg) {
@@ -446,6 +471,11 @@
       <h2>${highlight(title)}</h2>
       ${parts.map(p => `${p.heading ? `<h3>${esc(p.heading)}</h3>` : ''}<p>${highlight(p.text.trim())}</p>`).join('')}
       ${parts.guessed ? '<div class="cvs-note">Headings are guessed from wording, check before relying on them.</div>' : ''}`;
+    const prev = notes[noteId(title)];
+    const noteBox = overlay.querySelector('#cvs-notebox');
+    noteBox.value = prev?.note || '';
+    noteBox.placeholder = prev?.vote ? `Last time: ${prev.vote.toUpperCase()} (${prev.date})` : 'Note: why? (N to type, Enter to finish)';
+    noteBox.dataset.title = title;
     card.scrollTop = 0;
   }
 
@@ -454,6 +484,9 @@
     if (!protocol || !current || busy || !current[v]) return;
     busy = true;
     voteHistory.push({vote: v, title: parseStudy(current.box).title, box: current.box});
+    const nb = overlay.querySelector('#cvs-notebox');
+    saveNote(nb.dataset.title || '', nb.value, v);
+    nb.blur();
     card.style.transform = {
       no: 'translateX(-120%) rotate(-12deg)',
       yes: 'translateX(120%) rotate(12deg)',
@@ -498,6 +531,7 @@
     overlay.id = 'cvs-overlay';
     overlay.innerHTML = `
       <div id="cvs-card"></div>
+      <textarea id="cvs-notebox" rows="1"></textarea>
       <div id="cvs-bar">
         <button data-v="no" style="background:#e5534b">← No</button>
         <button data-v="maybe" style="background:#d4a72c">←+→ Maybe</button>
@@ -545,7 +579,13 @@
       else if (Math.abs(dy) > 120 && Math.abs(dy) > Math.abs(dx)) vote('maybe');
       else card.style.transform = 'none';
     });
-    loadProtocol(render);
+    const nb = overlay.querySelector('#cvs-notebox');
+    nb.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); nb.blur(); }
+      if (e.key === 'Escape') nb.blur();
+    });
+    nb.addEventListener('blur', () => saveNote(nb.dataset.title || '', nb.value));
+    loadNotes(() => loadProtocol(render));
   }
 
   function close() {
@@ -593,6 +633,10 @@
     }
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key === 'p' || e.key === 'P') return showSetup();
+    if (e.key === 'n' || e.key === 'N') {
+      e.preventDefault();
+      return overlay.querySelector('#cvs-notebox').focus();
+    }
     if (e.key === 'r' || e.key === 'R') return toggleSetting('recommend', 'Recommendation');
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
       // Left + right pressed together (within 200 ms) = Maybe.
