@@ -146,10 +146,9 @@
     const text = box.innerText;
     return {
       title,
-      covidenceId: (text.match(/#s?(d+)/) || [])[1] || '',
-      doi: ((text.match(/10.d{4,9}/[^s"<>]+/) || [])[0] || '').replace(/[.,;)]+$/, ''),
-      firstAuthorYear: (text.match(/#s?d+s*-s*([^
-·]+?d{4})/) || [])[1] || ''
+      covidenceId: (text.match(/#\s?(\d+)/) || [])[1] || '',
+      doi: ((text.match(/\b10\.\d{4,9}\/[^\s"<>]+/) || [])[0] || '').replace(/[.,;)]+$/, ''),
+      firstAuthorYear: (text.match(/#\s?\d+\s*-\s*([^\n·]+?\d{4})/) || [])[1] || ''
     };
   }
   function saveNote(info, text, vote) {

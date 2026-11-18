@@ -48,7 +48,7 @@ The extension is not on the Chrome Web Store yet, so you load it in developer mo
 | Recommendation on / off | R, or click the box | | |
 | Close | Esc, or ✕ top right | | |
 
-- **Notes.** Press N and write why you chose Maybe (or anything else). The note is saved with your vote, shown again if the paper comes back, and can be exported as a CSV from the Protocol page. Notes stay in your browser and are not sent to Covidence.
+- **Notes.** Press N and write why you chose Maybe (or anything else). Notes save automatically when you vote or press Enter, and show again if the paper comes back. The CSV lists each paper's Covidence ID, first author and year, title, DOI link, vote and note. Closing the card downloads it for you, the browser warns you if you leave Covidence with unexported notes, and the Protocol page has an export button too. Notes stay in your browser and are not sent to Covidence.
 - Dragging with the mouse selects text and never casts a vote.
 - The bar on the left shows how many papers you have screened and how many are left on this page. Click it to hide it.
 - Ctrl + Z uses Covidence's own Undo button when one is shown. If Covidence offers none, it tells you which paper to change by hand.
